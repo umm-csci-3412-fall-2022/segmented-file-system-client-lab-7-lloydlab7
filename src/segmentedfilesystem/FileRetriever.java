@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import segmentedfilesystem.PacketManager.Packet;
 
 public class FileRetriever {
 	public static final int NUM_FILES = 3;
@@ -26,8 +25,13 @@ public class FileRetriever {
 		try {
 			InputStream input = socket.getInputStream();
 			OutputStream output = socket.getOutputStream();
-			output.write(new Byte("0"));
+			output.write((byte)0);
+			byte[] b = new byte[1028];
 			while(!manager.done()) {
+				int i = input.read(b);
+				if(manager.inputPacket(new Packet(b))) {
+					manager.completeFile(b[1]);
+				}
 			}
 		} catch(IOException ioe) {
 			System.out.println("Caught IOException: ");
