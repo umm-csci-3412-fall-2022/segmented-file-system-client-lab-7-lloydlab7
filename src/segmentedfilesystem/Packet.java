@@ -16,6 +16,8 @@ import java.util.Arrays;
          * Given a byte array, creates a Packet.
          * If the status's last digit is a 0 (the int is even) it's a header packet
          * If the status's last digit is a 1 (the int is odd) it's a data packet
+         * Allows us to throw collections of bytes at this constructor without doing
+         * a ton of book keeping.
          */
         public Packet(byte[] b) {
             status = Byte.toUnsignedInt(b[0]);

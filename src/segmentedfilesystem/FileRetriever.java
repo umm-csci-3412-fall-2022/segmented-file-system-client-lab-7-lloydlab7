@@ -9,11 +9,12 @@ public class FileRetriever {
 	public static final int NUM_FILES = 3;
 	String svr;
 	PacketManager manager;
+	Socket socket;
 	public FileRetriever(String server, int port) {
 		try {
 			svr = server;
 			manager = new PacketManager(NUM_FILES);
-			downloadFiles(new Socket(svr, port));
+			socket = new Socket(svr, port);
 		} catch(IOException ioe) {
 			System.out.println("Caught IOException: ");
 			System.out.println(ioe);
@@ -21,7 +22,7 @@ public class FileRetriever {
 
 	}
 
-	public void downloadFiles(Socket socket) {
+	public void downloadFiles() {
 		try {
 			InputStream input = socket.getInputStream();
 			OutputStream output = socket.getOutputStream();
@@ -29,6 +30,7 @@ public class FileRetriever {
 			byte[] b = new byte[1028];
 			while(!manager.done()) {
 				int i = input.read(b);
+				//This assumes that the packets themselves get here in one piece.
 				if(manager.inputPacket(new Packet(b))) {
 					manager.completeFile(b[1]);
 				}
