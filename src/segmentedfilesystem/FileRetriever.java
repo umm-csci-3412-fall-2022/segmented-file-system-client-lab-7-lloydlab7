@@ -34,6 +34,7 @@ public class FileRetriever {
 				socket.receive(p);
 				//This assumes that the packets themselves get here in one piece.
 				if(manager.inputPacket(new Packet(p))) {
+					System.out.println("completed a file");
 					manager.completeFile(b[1]);
 				}
 			}

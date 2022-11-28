@@ -7,8 +7,8 @@ import java.util.Arrays;
      * packetNumber is -1 if the packet does not have a number (it is a header packet)
      */
     public class Packet {
-        public int status;
-        public int fileID;
+        public int status = -1;
+        public int fileID = -1;
         public int packetNumber = -1;
         public DatagramPacket packet;
 
@@ -24,7 +24,7 @@ import java.util.Arrays;
             status = Byte.toUnsignedInt(b[0]);
             fileID = Byte.toUnsignedInt(b[1]);
             if(status % 2 != 0) {
-                packetNumber = Byte.toUnsignedInt(b[2]) * (int)Math.pow(2, 8) + Byte.toUnsignedInt(b[3]);
+                packetNumber = (Byte.toUnsignedInt(b[2]) * (int)Math.pow(2, 8)) + Byte.toUnsignedInt(b[3]);
             }
             packet = p;
         }

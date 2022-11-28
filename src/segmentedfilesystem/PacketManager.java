@@ -9,7 +9,9 @@ public class PacketManager {
     private int[] numBytes;
     private ArrayList<Packet> packets;
     public PacketManager(int expectedNumOfFiles) {
+        packets = new ArrayList<Packet>();
         numFiles = expectedNumOfFiles;
+        fileNames = new byte[expectedNumOfFiles][];
         //Keeps track of number of bytes in each file. -1 means we don't know. -2 means the file is completed.
         numBytes = new int[numFiles];
         // Set each numBytes to -1 to show we don't know how many are in this file.
@@ -34,8 +36,11 @@ public class PacketManager {
     public boolean inputPacket(Packet p) {
         if(p.packetNumber == -1) {
             fileNames[p.fileID] = p.getData();
+            return false;
+        } else{
+            return inputDataPacket(p);
         }
-        return inputDataPacket(p);
+
     }
 
     /*
@@ -52,21 +57,25 @@ public class PacketManager {
         //If packet is final packet, assign the number of bytes.
         if(p.status % 4 == 3) {
             if(numBytes[p.fileID] == -1) {
-                numBytes[p.fileID] = p.packetNumber;
+                numBytes[p.fileID] = p.packetNumber+1;
             } else {
                 System.out.println("Got two final packets for the same file");
             }
         }
 
         // Checks if the relevant file has been completed.
-        if(numBytes[p.fileID] >= 0) {
+        if(numBytes[p.fileID] >= 1) {
             //If it ever exits the loop with found = false it did so because it did not find a specific packet
             boolean found = false;
             for(int i=0; i<numBytes[p.fileID]; i++) {
+                //For each packet in file
                 found = false;
-                for(int j=0; j<packets.size(); j++) {                    
-                    if(packets.get(i).fileID == p.fileID) {
-                        if(packets.get(i).packetNumber == i) {
+                for(int j=0; j<packets.size(); j++) {
+                    //Search through packets                    
+                    if(packets.get(j).fileID == p.fileID) {
+                    //Find packets with the correct fileID
+                        if(packets.get(j).packetNumber == i) {
+                        //Verify packet with that number has been stored.
                             found = true;
                             j = packets.size();
                         }
@@ -117,6 +126,14 @@ public class PacketManager {
             }
         }
         numBytes[fileNum] = -2;
+        return result;
+    }
+    
+    public String getFileName(int fileNum) {
+        String result = "";
+        for(byte b: fileNames[fileNum]) {
+            result += (char)b;
+        }
         return result;
     }
 }
