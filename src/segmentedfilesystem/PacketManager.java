@@ -33,7 +33,7 @@ public class PacketManager {
      */
     public boolean inputPacket(Packet p) {
         if(p.packetNumber == -1) {
-            fileNames[p.fileID] = p.bytes;
+            fileNames[p.fileID] = p.getData();
         }
         return inputDataPacket(p);
     }

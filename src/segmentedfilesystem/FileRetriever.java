@@ -3,18 +3,21 @@ package segmentedfilesystem;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.Socket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.DatagramPacket;
 
 public class FileRetriever {
 	public static final int NUM_FILES = 3;
 	String svr;
 	PacketManager manager;
-	Socket socket;
+	DatagramSocket socket;
 	public FileRetriever(String server, int port) {
 		try {
 			svr = server;
 			manager = new PacketManager(NUM_FILES);
-			socket = new Socket(svr, port);
+			socket = new DatagramSocket();
+			socket.connect(InetAddress.getByName(server), port);
 		} catch(IOException ioe) {
 			System.out.println("Caught IOException: ");
 			System.out.println(ioe);
@@ -24,14 +27,13 @@ public class FileRetriever {
 
 	public void downloadFiles() {
 		try {
-			InputStream input = socket.getInputStream();
-			OutputStream output = socket.getOutputStream();
-			output.write((byte)0);
 			byte[] b = new byte[1028];
+			DatagramPacket p = new DatagramPacket(b, b.length);
+			socket.send(p);
 			while(!manager.done()) {
-				int i = input.read(b);
+				socket.receive(p);
 				//This assumes that the packets themselves get here in one piece.
-				if(manager.inputPacket(new Packet(b))) {
+				if(manager.inputPacket(new Packet(p))) {
 					manager.completeFile(b[1]);
 				}
 			}
