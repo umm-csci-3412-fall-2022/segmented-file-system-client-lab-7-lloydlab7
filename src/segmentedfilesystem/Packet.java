@@ -10,7 +10,7 @@ import java.util.Arrays;
         public int status = -1;
         public int fileID = -1;
         public int packetNumber = -1;
-        public DatagramPacket packet;
+        private byte[] bytes;
 
         /*
          * Given a byte array, creates a Packet.
@@ -20,21 +20,22 @@ import java.util.Arrays;
          * a ton of book keeping.
          */
         public Packet(DatagramPacket p) {
-            byte[] b = p.getData();
+            byte[] b = Arrays.copyOfRange(p.getData(), p.getOffset(), p.getLength());
             status = Byte.toUnsignedInt(b[0]);
             fileID = Byte.toUnsignedInt(b[1]);
             if(status % 2 != 0) {
+                bytes = Arrays.copyOfRange(b, 4, b.length);
                 packetNumber = (Byte.toUnsignedInt(b[2]) * (int)Math.pow(2, 8)) + Byte.toUnsignedInt(b[3]);
+            } else {
+                bytes = Arrays.copyOfRange(b, 2, b.length);
             }
-            packet = p;
+            
         }
 
+        /*
+         * Only grabs the portion that references actual data, rather than the book keeping bytes.
+         */
         public byte[] getData() {
-            byte[] b = packet.getData();
-            if(packetNumber == -1) {
-                return Arrays.copyOfRange(b, 2, b.length);
-            } else {
-                return Arrays.copyOfRange(b, 4, b.length);
-            }
+            return bytes;
         }
     }

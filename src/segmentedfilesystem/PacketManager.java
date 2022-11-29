@@ -128,11 +128,15 @@ public class PacketManager {
         numBytes[fileNum] = -2;
         return result;
     }
-    
+
+    /*
+     * Assumes filenames do not contain NUL
+     */
     public String getFileName(int fileNum) {
         String result = "";
         for(byte b: fileNames[fileNum]) {
-            result += (char)b;
+            if(b != 0)
+                result += (char)b;
         }
         return result;
     }

@@ -51,6 +51,55 @@ public class PacketManagerTest {
         }
     }
 
+
+    @Test
+    public void storesFileNames() {
+        try {
+            PacketManager manager = new PacketManager(1);
+            byte[] b = new byte[1028];
+            String s = "asdfghjklasdfghjkldfsajkfldhsakgdhasjgdsa";
+            char[] charArr = s.toCharArray();
+            for(int i=0; i<charArr.length; i++) {
+                b[i+2] = (byte)charArr[i];
+            }
+            manager.inputPacket(new Packet(new DatagramPacket(b, 1028)));
+            assertEquals(manager.getFileName(0).substring(0,s.length()), s);
+        } catch (Exception e) {
+            fail(e.toString());
+        }
+    }
+
+    @Test
+    public void handlesMultiplePackets() {
+        try {
+            PacketManager manager = new PacketManager(3);
+            String s = "abcdef";
+            byte[] b = new byte[1028];
+            //Serves as the header packet, 0 is the status, 0 is the fileID, NUL is the name.
+            manager.inputPacket(new Packet(emptyPacket()));
+            //Sets them as data packets
+            b[0] = (byte)1;
+            //loops through 5 data packets, each one being another letter in the string abcdef
+            for(int i=0; i<5; i++) {
+                b[3] = (byte)i;
+                b[4] = (byte)s.charAt(i);
+                manager.inputPacket(new Packet(new DatagramPacket(b, 6)));
+            }
+            b[0] = (byte)3;
+            b[3] = (byte)5;
+            b[4] = (byte)s.charAt(5);
+            assertTrue(manager.inputPacket(new Packet(new DatagramPacket(b, 6))));
+            Packet[] p = manager.completeFile(0);
+            String result = "";
+            for(int i=0; i<6; i++) {
+                result += (char)p[i].getData()[0];
+            }
+            assertEquals(s, result);
+        } catch (Exception e) {
+            fail(e.toString());
+        }
+    }
+
     @Test
     public void handlesMultipleFiles() {
         try {
@@ -70,25 +119,6 @@ public class PacketManagerTest {
                 manager.completeFile(i);
             }
             assertTrue(manager.done());
-        } catch (Exception e) {
-            fail(e.toString());
-        }
-    }
-
-
-
-    @Test
-    public void storesFileNames() {
-        try {
-            PacketManager manager = new PacketManager(1);
-            byte[] b = new byte[1028];
-            String s = "asdfghjklasdfghjkldfsajkfldhsakgdhasjgdsa";
-            char[] charArr = s.toCharArray();
-            for(int i=0; i<charArr.length; i++) {
-                b[i+2] = (byte)charArr[i];
-            }
-            manager.inputPacket(new Packet(new DatagramPacket(b, 1028)));
-            assertEquals(manager.getFileName(0).substring(0,s.length()), s);
         } catch (Exception e) {
             fail(e.toString());
         }

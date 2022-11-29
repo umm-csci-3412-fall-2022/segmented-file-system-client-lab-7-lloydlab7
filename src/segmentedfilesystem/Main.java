@@ -6,7 +6,7 @@ public class Main {
     // be the server. If there are two, the second is assumed
     // to be the port to use.
     public static void main(String[] args) {
-        String server = "csci-4409.morris.umn.edu";
+        String server = "localhost";
         // CHANGE THIS DEFAULT PORT TO THE PORT NUMBER PROVIDED
         // BY THE INSTRUCTOR.
         int port = 6014;
