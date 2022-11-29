@@ -2,9 +2,11 @@ package segmentedfilesystem;
 
 import static org.junit.Assert.*;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.ArrayList;
 
 import org.junit.Test;
 
@@ -115,5 +117,43 @@ public class PacketManagerTest {
         } catch (Exception e) {
             fail(e.toString());
         }
+    }
+
+    @Test
+    public void handlesComplexRandomOrderedFiles() {
+        int numFiles = 10;
+        PacketManager manager = new PacketManager(numFiles);
+        String s = "abcdefghjklmnopqrstuvwxyz";
+        ArrayList<Packet> packets = new ArrayList<Packet>();
+        //For each file store packets in a seperate arraylist
+        for(int i=0; i<numFiles; i++) {
+            //Create a header packet
+            byte[] b = new byte[1028];
+            b[0] = (byte)0;
+            b[1] = (byte)i;
+            packets.add(new Packet(new DatagramPacket(b, 5)));
+            b[0] = (byte)1;
+            //loop through 10 data packets, each one being another letter in the string
+            for(int j=0; j<10; j++) {
+                b[3] = (byte)j;
+                b[4] = (byte)s.charAt(j);
+                packets.add(new Packet(new DatagramPacket(b, 5)));
+            }
+            //Create final packet
+            b[0] = (byte)3;
+            b[3] = (byte)10;
+            b[4] = (byte)s.charAt(10);
+            packets.add(new Packet(new DatagramPacket(b, 5)));
+        }
+        //Loop through this arraylist inputting elements at random.
+        for(int i=numFiles * 12; i>0; i--) {
+            int randInt = (int)(i * Math.random());
+            manager.inputPacket(packets.remove(randInt));
+        }
+        //Complete the files after all elements have been inputted.
+        for(int i=0; i<numFiles; i++) {
+            manager.completeFile(i);
+        }
+        assertTrue(manager.done());    
     }
 }
