@@ -17,6 +17,7 @@ public class ServerPacketTest {
     private static final String server = "localhost";
 
 
+    //connects to the server, and sends the empty packet. 
     public static DatagramSocket connect() throws Exception {
         DatagramSocket socket = new DatagramSocket();
         socket.connect(InetAddress.getByName(server), port);
@@ -61,6 +62,7 @@ public class ServerPacketTest {
             DatagramPacket p = emptyPacket();
             socket.receive(p);
             Packet clientPacket = new Packet(p);
+            //Verifies both that the constructor works, and that a packet (of any kind) was recieved.
             assertNotEquals(p.getData(), clientPacket.getData());
             assertNotEquals(clientPacket.getData().length, 1028);
             assertNotEquals(clientPacket.fileID, -1);

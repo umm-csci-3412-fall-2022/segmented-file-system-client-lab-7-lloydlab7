@@ -5,6 +5,7 @@ import java.util.Arrays;
     /*
      * status, fileID, and packetNumber are all unsigned ints
      * packetNumber is -1 if the packet does not have a number (it is a header packet)
+     * bytes contains all of the actual information being put into the relevant file.
      */
     public class Packet {
         public int status = -1;
@@ -16,8 +17,7 @@ import java.util.Arrays;
          * Given a byte array, creates a Packet.
          * If the status's last digit is a 0 (the int is even) it's a header packet
          * If the status's last digit is a 1 (the int is odd) it's a data packet
-         * Allows us to throw collections of bytes at this constructor without doing
-         * a ton of book keeping.
+         * Does all of the book keeping as soon as we recieve a packet.
          */
         public Packet(DatagramPacket p) {
             byte[] b = Arrays.copyOfRange(p.getData(), p.getOffset(), p.getLength());
@@ -32,9 +32,7 @@ import java.util.Arrays;
             
         }
 
-        /*
-         * Only grabs the portion that references actual data, rather than the book keeping bytes.
-         */
+        //Assures that the data inside a packet cannot be changed.
         public byte[] getData() {
             return bytes;
         }

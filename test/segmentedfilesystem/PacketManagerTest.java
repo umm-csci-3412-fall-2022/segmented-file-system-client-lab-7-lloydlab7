@@ -16,15 +16,6 @@ public class PacketManagerTest {
     private static final int port = 6014;
     private static final String server = "localhost";
 
-
-    public static DatagramSocket connect() throws Exception {
-        DatagramSocket socket = new DatagramSocket();
-        socket.connect(InetAddress.getByName(server), port);
-        DatagramPacket p = emptyPacket();
-        socket.send(p);
-        return socket;
-    }
-
     public static DatagramPacket emptyPacket() {
         byte[] b = new byte[1028];
         return new DatagramPacket(b, b.length);
@@ -34,17 +25,13 @@ public class PacketManagerTest {
     public void inputsOrderedPackets() {
         try {
             PacketManager manager = new PacketManager(3);
+            //Serves as the header packet, 0 is the status, 0 is the fileID, NUL is the name.
+            manager.inputPacket(new Packet(emptyPacket()));
             byte[] b = new byte[1028];
-            b[0] = (byte)0;
-            b[1] = (byte)0;
-            manager.inputPacket(new Packet(new DatagramPacket(b, 1028)));
-            b = new byte[1028];
+            //Serves as the final packet, 3 is the status, 0 is the fileID, there is no data to the file.
             b[0] = (byte)3;
-            b[1] = (byte)0;
-            b[2] = (byte)0;
-            b[3] = (byte)0;
-            b[4] = (byte)0;
             assertTrue(manager.inputPacket(new Packet(new DatagramPacket(b, 1028))));
+            //Verifies that this can run without Exception.
             manager.completeFile(0);
         } catch (Exception e) {
             fail(e.toString());
@@ -58,12 +45,15 @@ public class PacketManagerTest {
             PacketManager manager = new PacketManager(1);
             byte[] b = new byte[1028];
             String s = "asdfghjklasdfghjkldfsajkfldhsakgdhasjgdsa";
+            //Converts the file names to bytes, then puts it into the buffer of b
             char[] charArr = s.toCharArray();
             for(int i=0; i<charArr.length; i++) {
                 b[i+2] = (byte)charArr[i];
             }
+            //inputs b, status 0, fileID 0.
             manager.inputPacket(new Packet(new DatagramPacket(b, 1028)));
-            assertEquals(manager.getFileName(0).substring(0,s.length()), s);
+            //verifies that the manager grabbed the fileName.
+            assertEquals(manager.getFileName(0), s);
         } catch (Exception e) {
             fail(e.toString());
         }
@@ -85,6 +75,7 @@ public class PacketManagerTest {
                 b[4] = (byte)s.charAt(i);
                 manager.inputPacket(new Packet(new DatagramPacket(b, 6)));
             }
+            //Then sends end packet, this is in order.
             b[0] = (byte)3;
             b[3] = (byte)5;
             b[4] = (byte)s.charAt(5);
@@ -105,17 +96,19 @@ public class PacketManagerTest {
         try {
             PacketManager manager = new PacketManager(3);
             for(int i=0; i<3; i++) {
+                //Creates the header packet, status 0, fileID of i, NUL is the name
                 byte[] b = new byte[1028];
                 b[0] = (byte)0;
                 b[1] = (byte)i;
                 manager.inputPacket(new Packet(new DatagramPacket(b, 1028)));
+                //Creates the end packet, status 3, fileID of i, no other data within
                 b = new byte[1028];
                 b[0] = (byte)3;
                 b[1] = (byte)i;
-                b[2] = (byte)0;
-                b[3] = (byte)0;
-                b[4] = (byte)0;
                 assertTrue(manager.inputPacket(new Packet(new DatagramPacket(b, 1028))));
+            }
+            //Runs in reverse order to prove it can handle all of the packets at once.
+            for(int i=2; i>=0; i--) {
                 manager.completeFile(i);
             }
             assertTrue(manager.done());

@@ -12,6 +12,9 @@ public class FileRetriever {
 	String svr;
 	PacketManager manager;
 	DatagramSocket socket;
+	/*
+	 * Initializes the socket and connects to the server/port.
+	 */
 	public FileRetriever(String server, int port) {
 		try {
 			svr = server;
@@ -63,18 +66,5 @@ public class FileRetriever {
 			System.out.println("Caught IOException: ");
 			System.out.println(ioe);
 		}
-
-        // Do all the heavy lifting here.
-        // This should
-        //   * Connect to the server
-        //   * Download packets in some sort of loop
-        //   * Handle the packets as they come in by, e.g.,
-        //     handing them to some PacketManager class
-        // Your loop will need to be able to ask someone
-        // if you've received all the packets, and can thus
-        // terminate. You might have a method like
-        // PacketManager.allPacketsReceived() that you could
-        // call for that, but there are a bunch of possible
-        // ways.
 	}
 }
